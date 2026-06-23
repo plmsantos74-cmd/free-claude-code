@@ -356,6 +356,7 @@ class TestSettings:
         from config.settings import Settings
 
         monkeypatch.setenv(removed_key, "false")
+        monkeypatch.delenv("ENABLE_MODEL_THINKING", raising=False)
         monkeypatch.setitem(Settings.model_config, "env_file", ())
 
         settings = Settings()
@@ -373,6 +374,7 @@ class TestSettings:
         env_file = tmp_path / ".env"
         env_file.write_text(f"{removed_key}={value}\n", encoding="utf-8")
         monkeypatch.delenv(removed_key, raising=False)
+        monkeypatch.delenv("ENABLE_MODEL_THINKING", raising=False)
         monkeypatch.setitem(Settings.model_config, "env_file", (env_file,))
 
         settings = Settings()

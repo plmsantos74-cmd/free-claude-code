@@ -563,7 +563,8 @@ def test_preflight_rejects_mcp_servers():
         provider.preflight_stream(request)
 
 
-def test_preflight_rejects_listed_server_tools_in_tools_list():
+def test_preflight_strips_listed_server_tools_in_tools_list():
+    """web_search / web_fetch tool definitions are stripped, not rejected."""
     request = MessagesRequest(
         model="m",
         messages=[Message(role="user", content="x")],
@@ -577,8 +578,14 @@ def test_preflight_rejects_listed_server_tools_in_tools_list():
             rate_window=1,
         )
     )
-    with pytest.raises(InvalidRequestError, match="web_search"):
-        provider.preflight_stream(request)
+    # Should not raise — stripping replaces rejection
+    provider.preflight_stream(request)
+
+    # Verify the tool was stripped from the built body
+    body = provider._build_request_body(request)
+    assert "tools" not in body or all(
+        t.get("name") not in ("web_search", "web_fetch") for t in body.get("tools", [])
+    )
 
 
 def test_preflight_rejects_server_tool_result_blocks():

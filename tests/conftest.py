@@ -16,6 +16,8 @@ os.environ["PTB_TIMEDELTA"] = "1"
 # Ensure tests don't pick up a server API key from the repo .env
 # (tests expect endpoints to be unauthenticated by default)
 os.environ["ANTHROPIC_AUTH_TOKEN"] = ""
+# Prevent host .env / shell env from leaking ENABLE_MODEL_THINKING into tests
+os.environ.pop("ENABLE_MODEL_THINKING", None)
 
 Settings.model_config = {**Settings.model_config, "env_file": None}
 
