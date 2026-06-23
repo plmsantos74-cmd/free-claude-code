@@ -15,3 +15,8 @@ debug-*.log
 llama_cache
 .smoke-results
 .vscode
+
+# Windows proxy service runtime artifacts
+free-claude-proxy-service.*.log
+free-claude-proxy-service.exe
+free-claude-proxy-service.wrapper.log
