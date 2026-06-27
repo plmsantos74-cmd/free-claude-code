@@ -241,7 +241,7 @@ do {
     $s = & $WinSw status $SvcXml 2>&1
 } while ($s -ne "Stopped" -and $waited -lt 15)
 & $WinSw start $SvcXml
-Start-Sleep -Seconds 8
+Start-Sleep -Seconds 10
 
 # ---------------------------------------------------------------------------
 # Verificación final: health check + test de petición real
@@ -250,15 +250,15 @@ Write-Output ""
 Write-Output "============================================"
 $status = & $WinSw status $SvcXml 2>&1
 if ($status -eq "Started") {
-    $rootResp = curl.exe -s http://localhost:8082/ -H "x-api-key: freecc" 2>&1
-    $health   = curl.exe -s http://localhost:8082/health 2>&1
+    $rootResp = curl.exe -s -m 10 http://localhost:8082/ -H "x-api-key: freecc" 2>&1
+    $health   = curl.exe -s -m 10 http://localhost:8082/health 2>&1
     Write-Output "  ✅ Proxy actualizado y funcionando."
     Write-Output "  Health: $health"
     Write-Output "  Modelo activo: $rootResp"
 
-    # Test real
+    # Test real (timeout 45s para dar tiempo a DeepSeek)
     $testBody = '{"model":"claude-3-5-sonnet-20241022","max_tokens":30,"messages":[{"role":"user","content":"responde solo: ok"}]}'
-    $testResp = curl.exe -s -X POST "http://localhost:8082/v1/messages" `
+    $testResp = curl.exe -s -m 45 -X POST "http://localhost:8082/v1/messages" `
         -H "x-api-key: freecc" -H "Content-Type: application/json" `
         -d $testBody 2>&1
     if ($testResp -match "message_stop") {
@@ -269,7 +269,7 @@ if ($status -eq "Started") {
     } elseif ($testResp -match '"type":\s*"error"') {
         Write-Output "  ❌ Test API: ERROR - $testResp"
     } else {
-        Write-Output "  ⚠️  Test API: sin respuesta o timeout"
+        Write-Output "  ⚠️  Test API: sin respuesta o timeout ($(Get-Date -Format 'HH:mm:ss'))"
     }
 } else {
     Write-Output "  ⚠️  Servicio no inició. Revisa logs:"
